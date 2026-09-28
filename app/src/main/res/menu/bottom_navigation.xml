@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/tab_friends"
+        android:icon="@drawable/user"
+        android:title="친구" />
+    <item
+        android:id="@+id/tab_live"
+        android:icon="@drawable/playbutton"
+        android:title="라이브" />
+    <item
+        android:id="@+id/tab_links"
+        android:icon="@drawable/star"
+        android:title="추천 링크" />
+    <item
+        android:id="@+id/tab_settings"
+        android:icon="@drawable/settings"
+        android:title="설정" />
+</menu>

@@ -1,0 +1,25 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/appRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#FFFFFF">
+<ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true" android:clipToPadding="false">
+<LinearLayout android:id="@+id/pageContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="24dp" android:orientation="vertical"/>
+</ScrollView>
+<com.google.android.material.bottomnavigation.BottomNavigationView
+    android:id="@+id/bottomNavigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="34dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp"
+    android:background="#FFFFFF"
+    app:paddingBottomSystemWindowInsets="false"
+    app:paddingTopSystemWindowInsets="false"
+    app:itemPaddingTop="8dp"
+    app:itemPaddingBottom="2dp"
+    app:itemIconSize="24dp"
+    app:itemHorizontalTranslationEnabled="false"
+    app:itemTextAppearanceActive="@style/ViewPlus.NavigationText"
+    app:itemTextAppearanceInactive="@style/ViewPlus.NavigationText"
+    app:itemIconTint="@color/navigation_tint"
+    app:itemTextColor="@color/navigation_tint"
+    app:labelVisibilityMode="labeled"
+    app:menu="@menu/bottom_navigation"/>
+</LinearLayout>
