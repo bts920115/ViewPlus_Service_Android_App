@@ -48,10 +48,10 @@
         </activity>
 
         <activity android:name=".MainActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".YouTubeActivity" android:exported="false" />
-        <activity android:name=".LiveActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".video.YouTubeActivity" android:exported="false" />
+        <activity android:name=".live.LiveActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <service
-            android:name=".ScreenCaptureService"
+            android:name=".live.ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
             android:exported="false" />
     </application>

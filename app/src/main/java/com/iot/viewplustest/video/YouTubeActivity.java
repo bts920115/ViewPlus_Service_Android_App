@@ -1,4 +1,5 @@
-package com.iot.viewplustest;
+package com.iot.viewplustest.video;
+import com.iot.viewplustest.R;
 
 import android.os.Bundle;
 import android.net.Uri;

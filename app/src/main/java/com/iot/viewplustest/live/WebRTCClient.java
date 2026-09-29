@@ -1,4 +1,4 @@
-package com.iot.viewplustest;
+package com.iot.viewplustest.live;
 
 import android.Manifest;
 import android.content.Context;
@@ -49,6 +49,8 @@ import java.util.Map;
  * 이 클래스의 책임이 아니라 {@link SignalingClient}와 {@link MainActivity}의 책임이다.</p>
  */
 public class WebRTCClient {
+    private volatile java.util.function.Consumer<PeerConnection.IceConnectionState> connectionListener = state -> {};
+    public void setConnectionListener(java.util.function.Consumer<PeerConnection.IceConnectionState> listener) { connectionListener = listener; }
 
     private static final String TAG = "WebRTCClient";
     private static final int MAX_VIEWERS = 3;
@@ -251,6 +253,7 @@ public class WebRTCClient {
             }
             @Override public void onIceConnectionChange(PeerConnection.IceConnectionState state) {
                 Log.i(TAG, "[ICE] peer=" + peerId + " state=" + state);
+                connectionListener.accept(state);
             }
             @Override public void onIceConnectionReceivingChange(boolean receiving) {
                 Log.d(TAG, "[ICE] peer=" + peerId + " receiving=" + receiving);

@@ -1,4 +1,7 @@
 package com.iot.viewplustest;
+import com.iot.viewplustest.data.network.ApiClient;
+import com.iot.viewplustest.live.LiveActivity;
+import com.iot.viewplustest.video.YouTubeActivity;
 
 import android.os.Bundle;
 import android.content.Intent;
@@ -20,6 +23,14 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout page;
     private BottomNavigationView nav;
     private int tab = R.id.tab_live, generation;
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent.getBooleanExtra("returnToLiveList", false)) {
+            tab = R.id.tab_live;
+            nav.setSelectedItemId(tab);
+        }
+    }
 
     @Override
     public void onCreate(Bundle s) {

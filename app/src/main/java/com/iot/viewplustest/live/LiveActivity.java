@@ -1,4 +1,9 @@
-package com.iot.viewplustest;
+package com.iot.viewplustest.live;
+import com.iot.viewplustest.MainActivity;
+import com.iot.viewplustest.R;
+import com.iot.viewplustest.data.network.ApiClient;
+import com.iot.viewplustest.live.SignalingClient;
+import com.iot.viewplustest.live.WebRTCClient;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -80,6 +85,20 @@ public class LiveActivity extends AppCompatActivity {
     // 화면 공유 권한 및 foreground service 상태
     private Intent screenPermissionData;
     private boolean screenShareStarted;
+    private boolean leaving;
+    private final android.os.Handler connectionHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable disconnectedTimeout = () -> returnToLiveList("방송 연결이 끊어졌습니다.");
+    private void returnToLiveList(String message) {
+        if (roomRole != RoomRole.VIEWER || leaving || isFinishing() || isDestroyed()) return;
+        leaving = true;
+        connectionHandler.removeCallbacksAndMessages(null);
+        showToast(message);
+        closeConnection();
+        startActivity(new Intent(this, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra("returnToLiveList", true));
+        finish();
+    }
     private boolean screenCaptureStartPending;
     private boolean screenPermissionRequestInProgress;
     private boolean waitingForOverlayPermission;
@@ -226,6 +245,7 @@ public class LiveActivity extends AppCompatActivity {
             @Override
             public void onConnected() {
                 runOnUiThread(() -> {
+                    if (leaving || isFinishing() || isDestroyed()) return;
                     showToast("서버에 연결했습니다.");
                     sendJoinMessage();
                     if (roomRole == RoomRole.PUBLISHER) requestScreenCapture();
@@ -234,16 +254,24 @@ public class LiveActivity extends AppCompatActivity {
 
             @Override
             public void onDisconnected() {
-                runOnUiThread(() -> showToast("서버 연결이 종료되었습니다."));
+                runOnUiThread(() -> returnToLiveList("서버 연결이 종료되었습니다."));
             }
 
             @Override
             public void onError(String message) {
                 Log.e(TAG, "[SIGNAL] 연결 실패: " + message);
-                runOnUiThread(() -> showToast("서버 연결 실패: " + message));
+                runOnUiThread(() -> { if (roomRole == RoomRole.VIEWER) returnToLiveList("방송 연결이 끊어졌습니다."); else showToast("서버 연결 실패: " + message); });
             }
         });
         webRtcClient = new WebRTCClient(this, remoteRenderer, signalingClient);
+        webRtcClient.setConnectionListener(state -> runOnUiThread(() -> {
+            if (roomRole != RoomRole.VIEWER || leaving || isFinishing() || isDestroyed()) return;
+            if (state == org.webrtc.PeerConnection.IceConnectionState.FAILED) returnToLiveList("영상 연결이 종료되었습니다.");
+            else if (state == org.webrtc.PeerConnection.IceConnectionState.DISCONNECTED) {
+                connectionHandler.removeCallbacks(disconnectedTimeout);
+                connectionHandler.postDelayed(disconnectedTimeout, 5000);
+            } else if (state == org.webrtc.PeerConnection.IceConnectionState.CONNECTED || state == org.webrtc.PeerConnection.IceConnectionState.COMPLETED) connectionHandler.removeCallbacks(disconnectedTimeout);
+        }));
         if (accessToken == null) {
             showToast("로그인 후 라이브에 참여할 수 있습니다.");
             return;
@@ -266,6 +294,7 @@ public class LiveActivity extends AppCompatActivity {
 
     /** 시그널링 메시지를 유형별로 WebRTC, 채팅, UI에 위임한다. */
     private void handleSignal(JSONObject message) {
+        if (leaving || isFinishing() || isDestroyed()) return;
         String type = message.optString("type");
         Log.d(TAG, "[SIGNAL] 수신: " + type);
 
@@ -290,7 +319,8 @@ public class LiveActivity extends AppCompatActivity {
                     break;
                 case "peer-left":
                     webRtcClient.removePeer(message.optString("peerId"));
-                    showToast("상대방 연결이 종료되었습니다.");
+                    if (roomRole == RoomRole.VIEWER) returnToLiveList("방송이 종료되었습니다.");
+                    else showToast("시청자가 나갔습니다.");
                     break;
                 case "chat":
                     addChatMessage("참여자", message.optString("message"), false);
@@ -510,10 +540,12 @@ public class LiveActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        leaving = true;
+        connectionHandler.removeCallbacksAndMessages(null);
         unregisterReceiverSafely(foregroundReadyReceiver);
         unregisterReceiverSafely(overlayChatReceiver);
         closeConnection();
-        stopService(new Intent(this, ScreenCaptureService.class));
+        if (roomRole == RoomRole.PUBLISHER) stopService(new Intent(this, ScreenCaptureService.class));
         if (roomRole == RoomRole.PUBLISHER && roomId != null)
             new ApiClient(this).call("POST", "/api/rooms/" + roomId + "/end", new JSONObject(), (value, error) -> {});
         super.onDestroy();

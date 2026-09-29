@@ -1,4 +1,5 @@
-package com.iot.viewplustest;
+package com.iot.viewplustest.data.network;
+import com.iot.viewplustest.data.auth.AuthStore;
 import android.app.Activity;
 import org.json.*;
 import okhttp3.*;

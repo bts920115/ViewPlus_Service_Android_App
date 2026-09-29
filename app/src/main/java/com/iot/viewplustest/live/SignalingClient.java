@@ -1,4 +1,4 @@
-package com.iot.viewplustest;
+package com.iot.viewplustest.live;
 
 import android.util.Log;
 
@@ -36,6 +36,7 @@ public class SignalingClient {
         this.listener = listener;
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
+                .pingInterval(10, TimeUnit.SECONDS)
                 // WebSocket은 서버가 메시지를 보낼 때까지 계속 열려 있어야 한다.
                 .readTimeout(0, TimeUnit.MILLISECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
